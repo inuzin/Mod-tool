@@ -47,8 +47,8 @@ namespace Mod_Tool_test
             path_plugins = "C:/Users/Inu/AppData/Local/Skyrim Special Edition/plugins.txt";
             path_plugins_temp = "D:/Simple Mod Tool/Skyrim SE/plugins3.txt";
             path_plugins_temp2 = "D:/Simple Mod Tool/Skyrim SE/plugins2.txt";
-            xEditPath = "D:/Simple Mod Tool/SSEEdit/SSEEdit.exe";
-            LootPath = "D:/Simple Mod Tool/LOOT/LOOT.exe";
+            xEditPath = "D:/Mod Tools/SSEdit/SSEEdit.exe";
+            LootPath = "D:/Mod Tools/LOOT/LOOT.exe";
             iniPath = "D:/Documents/My Games/Skyrim Special Edition/SkyrimCustom.ini";
             f4sePath = "D:/Program Files (x86)/Steam/steamapps/common/Skyrim Special Edition/skse64_loader.exe";
 

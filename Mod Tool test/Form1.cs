@@ -19,6 +19,7 @@ namespace Mod_Tool_test
 
         Form2 form2 = new Form2();
         Form3 form3 = new Form3();
+        BusyForm busyform = new BusyForm();
 
         String path_real;
         String path_temp;
@@ -52,6 +53,10 @@ namespace Mod_Tool_test
             path_plugins_temp = form3.path_plugins_temp;
             path_plugins_temp2 = form3.path_plugins_temp2;
 
+            button1.Image = Image.FromFile("D:/Pictures/addicon_modgear.png");
+            button2.Image = Image.FromFile("D:/Pictures/minusicon_modgear.png");
+            button11.Image = Image.FromFile("D:/Pictures/gearicon_modgear.png");
+
             //Criar pasta caso nao exista
             System.IO.Directory.CreateDirectory(path_mods);
 
@@ -59,7 +64,19 @@ namespace Mod_Tool_test
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_modlist), true))
             {
 
-            }           
+            }
+
+            //Criar plugins.txt caso nao exista
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_plugins), true))
+            {
+
+            }
+
+            //Criar plugins3.txt caso nao exista
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_plugins_temp), true))
+            {
+
+            }
 
             xEdit.StartInfo.FileName = form3.xEditPath;
             Loot.StartInfo.FileName = form3.LootPath;
@@ -70,8 +87,13 @@ namespace Mod_Tool_test
             //Carregar Mods
             CarregarMods();
 
+
+            button3.Visible = false;
+            button4.Visible = false;
+            button5.Visible = false;
+            button6.Visible = false;
             //Console.WriteLine(listBox1.SelectedIndex);
-            
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -98,49 +120,63 @@ namespace Mod_Tool_test
 
         public void CarregarMods()
         {
-            string[] lines = System.IO.File.ReadAllLines(path_modlist);
+            try
+            {
+                listBox1.Items.Clear();
+                listBox2.Items.Clear();
 
-            
+                string[] lines = System.IO.File.ReadAllLines(path_modlist);
+
+
                 foreach (String l in lines)
                 {
                     listBox1.Items.Add(l);
                 }
 
-            string[] lines2 = System.IO.File.ReadAllLines(path_plugins);
+                string[] lines2 = System.IO.File.ReadAllLines(path_plugins);
 
-
-            foreach (String l in lines2)
-            {
-                listBox2.Items.Add(l);
+                foreach (String l in lines2)
+                {
+                    listBox2.Items.Add(l);
+                }
             }
+            catch
+            {
+
+            }
+
+            
 
         }
 
         public void Move(int direction)
         {
-            if (listBox2.SelectedItem == null || listBox2.SelectedIndex < 0)
+            if (listBox1.SelectedItem == null || listBox1.SelectedIndex < 0)
                 return;
 
-            int newIndex = listBox2.SelectedIndex + direction;
+            int newIndex = listBox1.SelectedIndex + direction;
 
-            if (newIndex < 0 || newIndex >= listBox2.Items.Count)
+            if (newIndex < 0 || newIndex >= listBox1.Items.Count)
                 return;
 
-            object selected = listBox2.SelectedItem;
+            object selected = listBox1.SelectedItem;
 
-            listBox2.Items.Remove(selected);
-            listBox2.Items.Insert(newIndex, selected);
-            listBox2.SetSelected(newIndex, true);
+            listBox1.Items.Remove(selected);
+            listBox1.Items.Insert(newIndex, selected);
+            listBox1.SetSelected(newIndex, true);
 
+            
             string[] lines = System.IO.File.ReadAllLines(path_plugins);
 
-            for (int b = 0; b <= listBox2.Items.Count; b++)
+            File.Delete(path_modlist);
+
+            for (int b = 0; b <= listBox1.Items.Count; b++)
             {
                 try
                 {
-                        using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_plugins_temp), true))
+                        using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_modlist), true))
                         {
-                            outputFile.WriteLine(listBox2.Items[b]);
+                            outputFile.WriteLine(listBox1.Items[b]);
                         }                   
 
                 }
@@ -149,10 +185,12 @@ namespace Mod_Tool_test
 
                 }
 
+    
 
                 //Console.WriteLine(lines);
             }
 
+            /*
             try
             {
                 File.Delete(path_plugins);
@@ -162,6 +200,9 @@ namespace Mod_Tool_test
             {
 
             }
+
+    */
+
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -204,16 +245,19 @@ namespace Mod_Tool_test
                 string[] entries = Directory.GetFileSystemEntries(path_temp, "*", SearchOption.AllDirectories);
 
                 //Abrir janela de nome/versao
+                //form2.modnome = OFD.FileName;
                 form2.ShowDialog();
                 
 
                 if (form2.process == true)
                 {
+                    //busyform.isBusy = true;
+                    
 
                     //mods.Add(new Mod(form2.modnome, entries));
 
                     
-                        listBox1.Items.Add(form2.modnome);
+                        //listBox1.Items.Add(form2.modnome);
 
                     //salva os arquivos do mod no .txt
 
@@ -221,14 +265,16 @@ namespace Mod_Tool_test
                     {
                         foreach (string entry in entries)
                         {
-
+                            Console.WriteLine("entries qnt: " + entries.Count());
                             //Muda os caminhos para a pasta real
                             string entry1 = entry.Replace(path_temp, path_real);
                             //Salva os caminhos no .txt gerado
-                            outputFile.WriteLine(entry1);                           
+                            outputFile.WriteLine(entry1);
 
                             if (entry1.Contains(".esm") || entry1.Contains(".esp") || entry1.Contains(".esl"))
                             {
+                                Console.WriteLine("EAE");
+                                Console.WriteLine(entry1);
                                 if (entry1.Contains("Fallout 4"))
                                 {
                                     using (StreamWriter outputFile2 = new StreamWriter(Path.Combine(path_plugins), true))
@@ -240,21 +286,29 @@ namespace Mod_Tool_test
 
                                         mods.Add(new Mod(form2.modnome, entries, entry2));
                                     }
+                                }
 
-                                    if (entry1.Contains("Skyrim Special Edition"))
+                                if (entry1.Contains("Skyrim Special Edition"))
+                                {
+                                    Console.WriteLine("Oiii");
+                                    using (StreamWriter outputFile2 = new StreamWriter(Path.Combine(path_plugins), true))
                                     {
-                                        using (StreamWriter outputFile2 = new StreamWriter(Path.Combine(path_plugins), true))
-                                        {
-                                            //String entry2 = entry1.Replace(path_real, "");
-                                            String entry2 = entry1.Remove(0, 61);
-                                            outputFile2.WriteLine("*" + entry2);
-                                            Console.WriteLine(entry2);
+                                        //String entry2 = entry1.Replace(path_real, "");
+                                        String entry2 = entry1.Remove(0, 74);
+                                        outputFile2.WriteLine("*" + entry2);
+                                        Console.WriteLine(entry2);
 
-                                            mods.Add(new Mod(form2.modnome, entries, entry2));
+                                        mods.Add(new Mod(form2.modnome, entries, entry2));
+
+                                        using (StreamWriter outputFile3 = new StreamWriter(Path.Combine(path_plugins_temp), true))
+                                        {
+                                            //outputFile3.WriteLine(entry2);
                                         }
                                     }
-
                                 }
+                                
+
+
                             }
                         }
                     }
@@ -264,15 +318,19 @@ namespace Mod_Tool_test
                             outputFile.WriteLine(form2.modnome);
                         }
 
-                    
 
-                    //deleta a pasta temporaria
-                    Directory.Delete(path_temp, true);
 
-                    //Extrai os arquivos para a pasta real
+                        //deleta a pasta temporaria
+                        Directory.Delete(path_temp, true);
 
-                    //Caso o arquivo selecionado seja um .zip
-                    if (OFD.FileName.Contains(".zip") || OFD.FileName.Contains(".rar"))
+                        File.Delete(path_mods + "" + form2.modnome + ".txt");
+
+                        File.Delete(path_plugins_temp);
+
+                        //Extrai os arquivos para a pasta real
+
+                        //Caso o arquivo selecionado seja um .zip
+                        if (OFD.FileName.Contains(".zip") || OFD.FileName.Contains(".rar"))
                     {
                       ZipFile.ExtractToDirectory(OFD.FileName, path_real);
                     }
@@ -296,39 +354,45 @@ namespace Mod_Tool_test
             }
 
             form2.process = false;
+            CarregarMods();
             listBox1.Refresh();
+            listBox2.Refresh();
+
+            
+            //busyform.isBusy = false;
         }
 
         private void button2_Click(object sender, EventArgs e)
-        {            
-            string modname = listBox1.GetItemText(listBox1.SelectedItem);
+        {
+                string modname = listBox1.GetItemText(listBox1.SelectedItem);
 
-            string[] lines = System.IO.File.ReadAllLines(@"" + path_mods + "/" + modname + ".txt");
-            
-            for (int i = 0; i <= lines.Count(); i++)
-            {            
-                try
+
+                string[] lines = System.IO.File.ReadAllLines(@"" + path_mods + "/" + modname + ".txt");
+
+                for (int i = 0; i <= lines.Count(); i++)
                 {
-                    Console.WriteLine(lines[i]);
+                    try
+                    {
+                        Console.WriteLine(lines[i]);
 
-                    FileAttributes attr = File.GetAttributes(lines[i]);
-                    
-                    if(attr.HasFlag(FileAttributes.Directory))
-                    {
-                        Directory.Delete(lines[i], true);
+                        FileAttributes attr = File.GetAttributes(lines[i]);
+
+                        if (attr.HasFlag(FileAttributes.Directory))
+                        {
+                            Directory.Delete(lines[i], true);
+                        }
+                        else
+                        {
+                            File.Delete(lines[i]);
+                        }
+
                     }
-                    else
+                    catch (Exception)
                     {
-                        File.Delete(lines[i]);
+                        //Nada acontece
                     }
 
                 }
-                catch(Exception)
-                {
-                    //Nada acontece
-                }
-
-            }
 
             string[] lines1 = System.IO.File.ReadAllLines(path_modlist);
 
@@ -361,13 +425,13 @@ namespace Mod_Tool_test
 
             //Deleta as linhas do plugins.txt
 
-            string[] lines2 = System.IO.File.ReadAllLines(path_plugins);
-
-            for(int b = 0; b <= lines2.Count(); b++)
+            try
             {
-                try
+                string[] lines2 = System.IO.File.ReadAllLines(path_plugins);
+
+                for (int b = 0; b <= lines2.Count(); b++)
                 {
-               
+
                         if (lines2[b] != "*" + mods[listBox1.SelectedIndex].esp)
                         {
                             using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_plugins_temp2), true))
@@ -375,15 +439,16 @@ namespace Mod_Tool_test
                                 outputFile.WriteLine(lines2[b]);
                             }
                         }
-                    
-                }
-                catch
-                {
 
-                }
+                    }
+
+
+                    //Console.WriteLine(lines);
                 
+            }
+            catch
+            {
 
-                //Console.WriteLine(lines);
             }
 
             try
@@ -407,9 +472,11 @@ namespace Mod_Tool_test
 
             }
 
-            listBox1.Items.Remove(listBox1.SelectedItem);
+            listBox1.Items.Remove(listBox1.SelectedItem);           
 
+            CarregarMods();
             listBox1.Refresh();
+            listBox2.Refresh();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -459,6 +526,26 @@ namespace Mod_Tool_test
         private void button8_Click(object sender, EventArgs e)
         {
             Move(1);
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            Move(-1);
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            Move(1);
+        }
+        //Options
+        private void button11_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
