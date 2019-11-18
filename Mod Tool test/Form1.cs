@@ -37,6 +37,8 @@ namespace Mod_Tool_test
         Process f4se = new Process();
         Process xLODGen = new Process();
 
+        List<String> plugins = new List<String>();
+
         public Form1()
         {
             InitializeComponent();               
@@ -87,7 +89,7 @@ namespace Mod_Tool_test
             //Carregar Mods
             CarregarMods();
 
-
+           
             button3.Visible = false;
             button4.Visible = false;
             button5.Visible = false;
@@ -137,7 +139,7 @@ namespace Mod_Tool_test
 
                 foreach (String l in lines2)
                 {
-                    listBox2.Items.Add(l);
+                    listBox2.Items.Add(l);                  
                 }
             }
             catch
@@ -145,7 +147,33 @@ namespace Mod_Tool_test
 
             }
 
-            
+
+            //RefreshPlugins();
+        }
+
+        public void RefreshPlugins()
+        {
+            try
+            {
+                string[] lines = System.IO.File.ReadAllLines(path_plugins);
+
+
+
+                foreach (String l in lines)
+                {
+                    using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_plugins_temp2), true))
+                    {
+                        outputFile.WriteLine(l);
+                    }
+                }
+
+                File.Delete(path_plugins);
+                File.Move(path_plugins_temp2, path_plugins);
+            }
+            catch
+            {
+
+            }
 
         }
 
@@ -203,6 +231,19 @@ namespace Mod_Tool_test
 
     */
 
+        }
+
+        private static void processDirectory(string startLocation)
+        {
+            foreach (var directory in Directory.GetDirectories(startLocation))
+            {
+                processDirectory(directory);
+                if (Directory.GetFiles(directory).Length == 0 &&
+                    Directory.GetDirectories(directory).Length == 0)
+                {
+                    Directory.Delete(directory, false);
+                }
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -318,19 +359,36 @@ namespace Mod_Tool_test
                             outputFile.WriteLine(form2.modnome);
                         }
 
+                        /*
+                    string[] fileArray = Directory.GetFiles(@"D:\Program Files (x86)\Steam\steamapps\common\Skyrim Special Edition\Data", "*", SearchOption.AllDirectories);
 
+                    foreach(string Newfile in entries)
+                    {
+                        foreach(string Oldfile in fileArray)
+                        {
+                            if(Oldfile == Newfile)
+                            {
+                                Console.WriteLine("" + Oldfile + "==" + Newfile + "");
+                                File.Delete(Oldfile);
+                                Console.WriteLine("" + Oldfile + "deletado");
+                            }
+                        }
+                    }
+                    */
 
-                        //deleta a pasta temporaria
-                        Directory.Delete(path_temp, true);
+                    //deleta a pasta temporaria
+                    Directory.Delete(path_temp, true);
 
                         File.Delete(path_mods + "" + form2.modnome + ".txt");
 
                         File.Delete(path_plugins_temp);
 
-                        //Extrai os arquivos para a pasta real
+                    //Extrai os arquivos para a pasta real
 
-                        //Caso o arquivo selecionado seja um .zip
-                        if (OFD.FileName.Contains(".zip") || OFD.FileName.Contains(".rar"))
+                  
+
+                    //Caso o arquivo selecionado seja um .zip
+                    if (OFD.FileName.Contains(".zip") || OFD.FileName.Contains(".rar"))
                     {
                       ZipFile.ExtractToDirectory(OFD.FileName, path_real);
                     }
@@ -358,41 +416,73 @@ namespace Mod_Tool_test
             listBox1.Refresh();
             listBox2.Refresh();
 
-            
+            //RefreshPlugins();
+
             //busyform.isBusy = false;
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
+            Console.WriteLine("REMOVER MOD");
+
                 string modname = listBox1.GetItemText(listBox1.SelectedItem);
+
+            
 
 
                 string[] lines = System.IO.File.ReadAllLines(@"" + path_mods + "/" + modname + ".txt");
+          
 
-                for (int i = 0; i <= lines.Count(); i++)
+                for (int i = 0; i <= lines.Count() - 1; i++)
                 {
-                    try
+                    
+                        //Console.WriteLine(lines[i]);
+
+                    //Pega os plugins do mod
+                    if (lines[i].Contains(".esp") || lines[i].Contains(".esm") || lines[i].Contains(".esl"))
                     {
-                        Console.WriteLine(lines[i]);
+                        //61 se FO4 74 se SE
+                        //plugins = lines[i].Remove(0, 61);
+                        plugins.Add(lines[i].Remove(0, 74));
 
+                        //Console.WriteLine(plugins[i]);
+                    }
+
+                // Deleta os arquivos do mod
+                try
+                {
+                    File.Delete(lines[i]);
+                }
+                catch
+                {
+
+                }
+                    
+
+
+                    /*
                         FileAttributes attr = File.GetAttributes(lines[i]);
-
+                    
                         if (attr.HasFlag(FileAttributes.Directory))
                         {
+                        if (lines[i].Length == 0)
+                        {
                             Directory.Delete(lines[i], true);
+                        }
                         }
                         else
                         {
                             File.Delete(lines[i]);
                         }
-
-                    }
-                    catch (Exception)
-                    {
-                        //Nada acontece
-                    }
+                        */
 
                 }
+
+            //Deleta diretorios vazios na pasta DATA
+            processDirectory(path_real);
+
+
+
 
             string[] lines1 = System.IO.File.ReadAllLines(path_modlist);
 
@@ -424,30 +514,62 @@ namespace Mod_Tool_test
             File.Delete(path_mods + "/" + modname + ".txt");
 
             //Deleta as linhas do plugins.txt
-
+            /*
             try
-            {
+             {
                 string[] lines2 = System.IO.File.ReadAllLines(path_plugins);
 
-                for (int b = 0; b <= lines2.Count(); b++)
+
+                for (int c = 0; c <= lines2.Count(); c++)
                 {
-
-                        if (lines2[b] != "*" + mods[listBox1.SelectedIndex].esp)
+                    
+                    if (lines2[c] != "*" + mods[listBox1.SelectedIndex].esp)
+                    {
+                        using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_plugins_temp2), true))
                         {
-                            using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_plugins_temp2), true))
-                            {
-                                outputFile.WriteLine(lines2[b]);
-                            }
+                            outputFile.WriteLine(lines2[c]);
                         }
-
                     }
 
-
-                    //Console.WriteLine(lines);
-                
+                }
             }
             catch
             {
+
+            }
+           */
+
+            string[] lines2 = System.IO.File.ReadAllLines(path_plugins);
+
+            Boolean writetxt;
+
+            Console.WriteLine("opaaa");
+
+            for(int x = 0; x <= lines2.Count() - 1; x++)
+            {
+                writetxt = true;
+
+                Console.WriteLine("222222");
+
+                for (int y = 0; y <= plugins.Count() - 1; y++)
+                {
+                    Console.WriteLine("----------------------------------------------");
+                    Console.WriteLine("*" + plugins[y]);
+
+                    //Caso detecte o plugin presente na lista de plugins ativos
+                    if (lines2[x] == "*" + plugins[y])
+                    {
+                        writetxt = false;
+                    }
+                }
+
+                if (writetxt == true)
+                {
+                    using (StreamWriter outputFile = new StreamWriter(Path.Combine(path_plugins_temp2), true))
+                    {
+                        outputFile.WriteLine(lines2[x]);
+                    }
+                }
 
             }
 
@@ -477,6 +599,7 @@ namespace Mod_Tool_test
             CarregarMods();
             listBox1.Refresh();
             listBox2.Refresh();
+
         }
 
         private void button3_Click(object sender, EventArgs e)
